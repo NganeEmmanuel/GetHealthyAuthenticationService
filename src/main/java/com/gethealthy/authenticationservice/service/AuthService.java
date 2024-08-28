@@ -49,6 +49,6 @@ public interface AuthService {
      * @return true if valid or false if not
      * @throws com.gethealthy.authenticationservice.exception.TokenExpiredException if token has expired
      */
-    public Boolean authenticateUser(String token);
+    Boolean authenticateUser(String token);
 
 }

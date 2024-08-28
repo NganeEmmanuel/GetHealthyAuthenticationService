@@ -8,8 +8,10 @@ import com.gethealthy.authenticationservice.enums.UserAuthority;
 import com.gethealthy.authenticationservice.exception.NoMatchingUserFoundException;
 import com.gethealthy.authenticationservice.exception.TokenExpiredException;
 import com.gethealthy.authenticationservice.exception.UserNotVerifiedException;
+import com.gethealthy.authenticationservice.feign.AuthenticationInterface;
 import com.gethealthy.authenticationservice.model.TokenBlacklist;
 import com.gethealthy.authenticationservice.model.User;
+import com.gethealthy.authenticationservice.model.UserDTO;
 import com.gethealthy.authenticationservice.repository.AuthenticationRepository;
 import com.gethealthy.authenticationservice.repository.TokenBlacklistRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,24 +30,24 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-    private final TokenBlacklistRepository tokenBlacklistRepository;private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
+    private final TokenBlacklistRepository tokenBlacklistRepository;
+    private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
+    private final AuthenticationInterface authenticationInterface;
+    private final UserRequestWrapper userRequestWrapper;
+    private  final MapperService<UserDTO, User> mapperService;
 
     @Override
     public AuthenticationResponse signup(RegisterRequest request) {
-        var user = User.builder()
-                .name(request.getName())
-                .username(request.getUsername())
-                .email(request.getEmail())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .authority(UserAuthority.USER)
-                .build();
-        authRepository.save(user);
+        request.setPassword(passwordEncoder.encode(request.getPassword()));
+        var user = authenticationInterface.addUser(userRequestWrapper.toUserRequest(request)).getBody();
+            assert user != null;
+            authRepository.save(user);
 
-        //todo use openfiegn to implement the userService.saveUser() method
-        var jwtToken = jwtService.generateJwtToken(user);
-        return AuthenticationResponse.builder()
-                .token(jwtToken)
-                .build();
+            //todo use openfiegn to implement the userService.saveUser() method
+            var jwtToken = jwtService.generateJwtToken(user);
+            return AuthenticationResponse.builder()
+                    .token(jwtToken)
+                    .build();
     }
 
     @Override
@@ -58,8 +60,7 @@ public class AuthServiceImpl implements AuthService {
         );
 
         try {
-            var user = authRepository.findByUsername(request.getUsername())
-                    .orElseThrow(() -> new NoMatchingUserFoundException(request.getUsername()));
+            var user = authenticationInterface.getUserByUsername(request.getUsername()).getBody();
             //todo configure mail connection and uncomment
             var jwtToken = jwtService.generateJwtToken(user);
             return AuthenticationResponse.builder()
@@ -94,8 +95,7 @@ public class AuthServiceImpl implements AuthService {
                 throw new TokenExpiredException();
             }
             var username = jwtService.extractUserName(refreshToken);
-            var user = authRepository.findByUsername(username)
-                    .orElseThrow(() -> new NoMatchingUserFoundException(username));
+            var user = authenticationInterface.getUserByUsername(username).getBody(); //talks to user-service through feign client
             var newJwtToken = jwtService.generateJwtToken(user);
             return AuthenticationRefreshResponse.builder()
                     .token(newJwtToken)
@@ -113,8 +113,7 @@ public class AuthServiceImpl implements AuthService {
     public Boolean authenticateUser(String token) {
         try {
             var username = jwtService.extractUserName(token);
-            var user = authRepository.findByUsername(username)
-                    .orElseThrow(() -> new NoMatchingUserFoundException(username));
+            var user = authenticationInterface.getUserByUsername(username).getBody();;
 
             return jwtService.isJwtTokenValid(token, user);
         }catch (NoMatchingUserFoundException ex){
