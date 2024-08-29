@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.*;
 
 
 @RestController
-@RequestMapping("/api/v1/auth")
 @CrossOrigin
 @RequiredArgsConstructor
+@RequestMapping("/api/v1/auth")
 public class AuthController {
 
     private final AuthService authService;
@@ -40,15 +40,19 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/authenticate-user")  //todo implement this so every request in all other services sends the request here to authenticate the user
+    @PostMapping("/authenticate-user")
     public ResponseEntity<Boolean> authenticateUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader) {
+        System.out.println("Received authenticate-user request");
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             var token = authorizationHeader.substring(7); // Remove "Bearer " prefix
-            return ResponseEntity.ok(authService.authenticateUser(token));
+            Boolean isAuthenticated = authService.authenticateUser(token);
+            System.out.println("Authentication result: " + isAuthenticated);
+            return ResponseEntity.ok(isAuthenticated);
         } else {
             return new ResponseEntity<>(Boolean.FALSE, HttpStatus.BAD_REQUEST);
         }
     }
+
 
     @PostMapping("/refresh-token")
     public ResponseEntity<AuthenticationRefreshResponse> refreshToken(@RequestBody String refreshToken) {

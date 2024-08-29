@@ -1,7 +1,6 @@
 package com.gethealthy.authenticationservice.feign;
 
 import com.gethealthy.authenticationservice.model.User;
-import com.gethealthy.authenticationservice.model.UserDTO;
 import com.gethealthy.authenticationservice.model.UserRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;

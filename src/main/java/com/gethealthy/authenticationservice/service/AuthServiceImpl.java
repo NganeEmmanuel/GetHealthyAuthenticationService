@@ -109,19 +109,26 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    // authenticationService
     @Override
     public Boolean authenticateUser(String token) {
         try {
             var username = jwtService.extractUserName(token);
-            var user = authenticationInterface.getUserByUsername(username).getBody();;
+            var userResponse = authenticationInterface.getUserByUsername(username);
 
-            return jwtService.isJwtTokenValid(token, user);
-        }catch (NoMatchingUserFoundException ex){
+            if (userResponse.getStatusCode().is2xxSuccessful() && userResponse.getBody() != null) {
+                var user = userResponse.getBody();
+                return jwtService.isJwtTokenValid(token, user);
+            } else {
+                return Boolean.FALSE;
+            }
+        } catch (NoMatchingUserFoundException ex) {
             logger.info("Error getting user from token: {}", token);
             throw new RuntimeException(ex);
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.info("Error occurred while authenticating user: {}", token);
             throw new RuntimeException(e);
         }
     }
+
 }
