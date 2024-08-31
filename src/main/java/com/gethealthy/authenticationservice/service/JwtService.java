@@ -7,7 +7,6 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -23,42 +22,40 @@ public class JwtService {
             ? System.getenv("JWT_SECRET_KEY")
             : "DE79AF2BD6D2F70D654D80B16DDFCA5487A75795E8C33A906F990C64522C45BE";
     private final TokenBlacklistRepository tokenBlacklistRepository;
+
     public String extractUserName(String jwtToken) {
         return extractClaim(jwtToken, Claims::getSubject);
     }
 
-    public <T> T extractClaim(String jwtToken, Function<Claims, T> claimsResolver){
+    public <T> T extractClaim(String jwtToken, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(jwtToken);
         return claimsResolver.apply(claims);
     }
 
-    public String generateJwtToken(UserDetails userDetails){
-        return generateJwtToken(new HashMap<>(), userDetails);
+    public String generateJwtToken(String username) {
+        return generateJwtToken(new HashMap<>(), username);
     }
 
-    public String generateJwtToken(
-            Map<String, Object> extraClaims,
-            UserDetails userDetails
-    ){
+    public String generateJwtToken(Map<String, Object> extraClaims, String username) {
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
-                .setSubject(userDetails.getUsername())
+                .setSubject(username)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 24)) // 24 minutes
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    public boolean isJwtTokenValid(String jwtToken, UserDetails userDetails){
+    public boolean isJwtTokenValid(String jwtToken) {
         if (isTokenBlacklisted(jwtToken)) {
             return false;
         }
         final String username = extractUserName(jwtToken);
-        return (username.equals(userDetails.getUsername()) && !isJwtTokenExpired(jwtToken));
+        return (username != null && !isJwtTokenExpired(jwtToken));
     }
 
-    public boolean isJwtTokenExpired(String jwtToken){
+    public boolean isJwtTokenExpired(String jwtToken) {
         return extractExpiration(jwtToken).before(new Date());
     }
 
@@ -66,7 +63,7 @@ public class JwtService {
         return extractClaim(jwtToken, Claims::getExpiration);
     }
 
-    private Claims extractAllClaims(String jwtToken){
+    private Claims extractAllClaims(String jwtToken) {
         return Jwts
                 .parserBuilder()
                 .setSigningKey(getSignInKey())

@@ -3,9 +3,6 @@ package com.gethealthy.authenticationservice.model;
 import com.gethealthy.authenticationservice.enums.UserAuthority;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.*;
 
@@ -16,7 +13,7 @@ import java.util.*;
 @ToString
 @Builder
 @Table(name = "users")
-public class User implements UserDetails {
+public class User{
     @Id
     private Long id;
 
@@ -53,30 +50,5 @@ public class User implements UserDetails {
     protected void onCreate() {
         joinDate = new Date();
         lastUpdated = new Date();
-    }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(authority.name()));
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return true;
     }
 }

@@ -6,6 +6,8 @@ import com.gethealthy.authenticationservice.auth.AuthenticationRequest;
 import com.gethealthy.authenticationservice.auth.AuthenticationResponse;
 import com.gethealthy.authenticationservice.auth.RegisterRequest;
 import com.gethealthy.authenticationservice.exception.AuthException;
+import com.gethealthy.authenticationservice.model.UserDTO;
+import org.springframework.http.ResponseEntity;
 
 public interface AuthService {
     /**
@@ -51,4 +53,12 @@ public interface AuthService {
      */
     Boolean authenticateUser(String token);
 
+    /**
+     * Get the user information from the authentication token
+     *
+     * @param token the token to be authenticated
+     * @return userDTO object with user info if valid and an empty object if not
+     * @throws com.gethealthy.authenticationservice.exception.TokenExpiredException if token has expired
+     */
+    ResponseEntity<UserDTO> getLoggedInUser(String token);
 }

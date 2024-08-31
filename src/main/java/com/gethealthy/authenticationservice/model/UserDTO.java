@@ -1,11 +1,15 @@
 package com.gethealthy.authenticationservice.model;
 
 import com.gethealthy.authenticationservice.enums.UserAuthority;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 @Data
-@RequiredArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
+@ToString
 public class UserDTO {
     private Long id;
     private String name;
