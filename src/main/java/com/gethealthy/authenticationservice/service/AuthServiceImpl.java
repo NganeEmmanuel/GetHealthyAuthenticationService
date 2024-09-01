@@ -11,7 +11,6 @@ import com.gethealthy.authenticationservice.feign.AuthenticationInterface;
 import com.gethealthy.authenticationservice.model.TokenBlacklist;
 import com.gethealthy.authenticationservice.model.User;
 import com.gethealthy.authenticationservice.model.UserDTO;
-import com.gethealthy.authenticationservice.repository.AuthenticationRepository;
 import com.gethealthy.authenticationservice.repository.TokenBlacklistRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -23,7 +22,6 @@ import org.springframework.http.ResponseEntity;
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
-    private final AuthenticationRepository authRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final TokenBlacklistRepository tokenBlacklistRepository;
@@ -37,7 +35,6 @@ public class AuthServiceImpl implements AuthService {
         request.setPassword(passwordEncoder.encode(request.getPassword()));
         var user = authenticationInterface.addUser(userRequestWrapper.toUserRequest(request)).getBody();
         assert user != null;
-        authRepository.save(user);
 
         // Generate JWT token using the username
         var jwtToken = jwtService.generateJwtToken(user.getUsername());
@@ -145,5 +142,11 @@ public class AuthServiceImpl implements AuthService {
             logger.info("Error occurred while getting logged in user from token: {}", token);
             throw new RuntimeException(e);
         }
+    }
+
+    public ResponseEntity<Long> getLoggedInUserId(String token) {
+       var user = getLoggedInUser(token).getBody();
+        assert user != null;
+        return ResponseEntity.ok(user.getId());
     }
 }

@@ -61,4 +61,13 @@ public interface AuthService {
      * @throws com.gethealthy.authenticationservice.exception.TokenExpiredException if token has expired
      */
     ResponseEntity<UserDTO> getLoggedInUser(String token);
+
+    /**
+     * Get the userid information from the authentication token
+     *
+     * @param token the token to be authenticated
+     * @return userDTO object with user info if valid and an empty object if not
+     * @throws com.gethealthy.authenticationservice.exception.TokenExpiredException if token has expired
+     */
+    ResponseEntity<Long> getLoggedInUserId(String token);
 }

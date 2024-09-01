@@ -1,6 +1,7 @@
 package com.gethealthy.authenticationservice.feign;
 
 import com.gethealthy.authenticationservice.model.User;
+import com.gethealthy.authenticationservice.model.UserDTO;
 import com.gethealthy.authenticationservice.model.UserRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
@@ -17,5 +18,5 @@ public interface AuthenticationInterface {
     ResponseEntity<User> getUserByUsername(@RequestParam String username);
 
     @PostMapping("/api/v1/user/add")
-    ResponseEntity<User> addUser(@RequestBody UserRequest user);
+    ResponseEntity<UserDTO> addUser(@RequestBody UserRequest user);
 }

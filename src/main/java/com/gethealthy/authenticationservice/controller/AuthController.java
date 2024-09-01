@@ -12,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Date;
 
 
 @RestController
@@ -53,7 +52,7 @@ public class AuthController {
         }
     }
 
-
+    //todo properly implement this
     @PostMapping("/refresh-token")
     public ResponseEntity<AuthenticationRefreshResponse> refreshToken(@RequestBody String refreshToken) {
         return ResponseEntity.ok(authService.refreshToken(refreshToken));
@@ -69,9 +68,14 @@ public class AuthController {
         }
     }
 
-    @PostMapping("/me")
-    public ResponseEntity<UserDTO> me(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader){
-        return ResponseEntity.ok(new UserDTO());
+    @GetMapping("/get-logged-in-userid")
+    public ResponseEntity<Long> getLoggedInUserId(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader) {
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            String token = authorizationHeader.substring(7);
+            return authService.getLoggedInUserId(token);
+        }else{
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
     }
 
 }
