@@ -31,20 +31,20 @@ public class AuthServiceImpl implements AuthService {
     private final MapperService<UserDTO, User> mapperService;
 
     @Override
-    public AuthenticationResponse signup(RegisterRequest request) {
+    public ResponseEntity<AuthenticationResponse> signup(RegisterRequest request) {
         request.setPassword(passwordEncoder.encode(request.getPassword()));
         var user = authenticationInterface.addUser(userRequestWrapper.toUserRequest(request)).getBody();
         assert user != null;
 
         // Generate JWT token using the username
         var jwtToken = jwtService.generateJwtToken(user.getUsername());
-        return AuthenticationResponse.builder()
+        return ResponseEntity.ok(AuthenticationResponse.builder()
                 .token(jwtToken)
-                .build();
+                .build());
     }
 
     @Override
-    public AuthenticationResponse login(AuthenticationRequest request) {
+    public ResponseEntity<AuthenticationResponse> login(AuthenticationRequest request) {
         try {
             var user = authenticationInterface.getUserByUsername(request.getUsername()).getBody();
             assert user != null;
@@ -55,9 +55,9 @@ public class AuthServiceImpl implements AuthService {
 
             // Generate JWT token using the username
             var jwtToken = jwtService.generateJwtToken(user.getUsername());
-            return AuthenticationResponse.builder()
+            return ResponseEntity.ok(AuthenticationResponse.builder()
                     .token(jwtToken)
-                    .build();
+                    .build());
         } catch (NoMatchingUserFoundException ex) {
             logger.info("Error getting user while logging in with username: {}", request.getUsername());
             throw new RuntimeException(ex);
@@ -71,17 +71,17 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String logout(String token) {
+    public ResponseEntity<String> logout(String token) {
         var tokenBlacklist = TokenBlacklist.builder()
                 .token(token)
                 .expirationDate(jwtService.extractExpiration(token))
                 .build();
         tokenBlacklistRepository.save(tokenBlacklist);
-        return "User logged out successfully.";
+        return ResponseEntity.ok("success");
     }
 
     @Override
-    public AuthenticationRefreshResponse refreshToken(String refreshToken) {
+    public ResponseEntity<AuthenticationRefreshResponse> refreshToken(String refreshToken) {
         try {
             if (jwtService.isJwtTokenExpired(refreshToken)) {
                 throw new TokenExpiredException();
@@ -90,9 +90,9 @@ public class AuthServiceImpl implements AuthService {
             var user = authenticationInterface.getUserByUsername(username).getBody(); // talks to user-service through Feign client
             assert user != null;
             var newJwtToken = jwtService.generateJwtToken(user.getUsername());
-            return AuthenticationRefreshResponse.builder()
+            return ResponseEntity.ok(AuthenticationRefreshResponse.builder()
                     .token(newJwtToken)
-                    .build();
+                    .build());
         } catch (TokenExpiredException expired) {
             logger.info("Expired token while refreshing token: {}", refreshToken);
             throw new RuntimeException(expired);
@@ -103,15 +103,15 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public Boolean authenticateUser(String token) {
+    public ResponseEntity<Boolean> authenticateUser(String token) {
         try {
             var username = jwtService.extractUserName(token);
             var userResponse = authenticationInterface.getUserByUsername(username);
 
             if (userResponse.getStatusCode().is2xxSuccessful() && userResponse.getBody() != null) {
-                return jwtService.isJwtTokenValid(token);
+                return ResponseEntity.ok(jwtService.isJwtTokenValid(token));
             } else {
-                return Boolean.FALSE;
+                return ResponseEntity.ok(Boolean.FALSE);
             }
         } catch (NoMatchingUserFoundException ex) {
             logger.info("Error getting user from token: {}", token);

@@ -24,19 +24,19 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<AuthenticationResponse> register(@RequestBody RegisterRequest request){
-        return ResponseEntity.ok(authService.signup(request));
+        return authService.signup(request);
     } //good
 
     @PostMapping("/login")
     public ResponseEntity<AuthenticationResponse> login(@RequestBody AuthenticationRequest request){
-        return ResponseEntity.ok(authService.login(request));
+        return authService.login(request);
     } //good
 
     @PostMapping("/logout")
     public ResponseEntity<String> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader){
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String token = authorizationHeader.substring(7); // Remove "Bearer " prefix
-            return ResponseEntity.ok(authService.logout(token));
+            return authService.logout(token);
         } else {
             return ResponseEntity.badRequest().body("Invalid Authorization header.");
         }
@@ -46,7 +46,7 @@ public class AuthController {
     public ResponseEntity<Boolean> authenticateUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader) {
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             String token = authorizationHeader.substring(7); // Remove "Bearer " prefix
-            return ResponseEntity.ok(authService.authenticateUser(token));
+            return authService.authenticateUser(token);
         } else {
             return new ResponseEntity<>(Boolean.FALSE, HttpStatus.BAD_REQUEST);
         }
@@ -55,7 +55,7 @@ public class AuthController {
     //todo properly implement this
     @PostMapping("/refresh-token")
     public ResponseEntity<AuthenticationRefreshResponse> refreshToken(@RequestBody String refreshToken) {
-        return ResponseEntity.ok(authService.refreshToken(refreshToken));
+        return authService.refreshToken(refreshToken);
     }
 
     @GetMapping("/get-logged-in-user")

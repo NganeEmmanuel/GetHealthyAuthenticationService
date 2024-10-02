@@ -48,7 +48,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         username = jwtService.extractUserName(jwtToken); // Extract the username from JWT token
 
         // Authenticate User
-        if (username != null && authService.authenticateUser(jwtToken)) {
+        if (username != null && Boolean.TRUE.equals(authService.authenticateUser(jwtToken).getBody())) {
             // Assuming your AuthService.authenticateUser method returns true if token is valid
             // and handles setting user context if necessary
             request.setAttribute("username", username);
